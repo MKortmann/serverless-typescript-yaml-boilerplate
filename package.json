@@ -15,6 +15,8 @@
     "@types/serverless": "^1.72.5",
     "aws-sdk": "^2.868.0",
     "fork-ts-checker-webpack-plugin": "^3.0.1",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-reqvalidator-plugin": "^1.0.4",
     "serverless-webpack": "^5.2.0",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.10.2",
