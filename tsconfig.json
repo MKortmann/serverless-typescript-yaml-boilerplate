@@ -9,7 +9,7 @@
     "target": "es2017",
     "outDir": "lib"
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "webpack.config.js"],
   "exclude": [
     "node_modules/**/*",
     ".serverless/**/*",
