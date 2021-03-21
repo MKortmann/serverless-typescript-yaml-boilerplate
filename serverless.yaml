@@ -1,0 +1,29 @@
+
+service:
+  name: boilerplate-yaml
+
+plugins:
+  - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  region: ${opt:region, "eu-central-1"}
+  stage: ${opt:stage, "dev"}
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.ts'
+    includeModules: true
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello
+
+
+
