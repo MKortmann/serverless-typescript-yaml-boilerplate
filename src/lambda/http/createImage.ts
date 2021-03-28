@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import * as uuid from 'uuid'
@@ -23,7 +23,7 @@ const imagesTable = process.env.IMAGES_TABLE
 const bucketName = process.env.IMAGES_S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 
-export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   console.log('Caller event', event)
   const groupId = event.pathParameters.groupId
   const validGroupId = await groupExists(groupId)
@@ -49,13 +49,8 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
       uploadUrl: url
     })
   }
-})
+}
 
-handler.use(
-  cors({
-    credentials: true
-  })
-)
 
 async function groupExists(groupId: string) {
   const result = await docClient
@@ -98,6 +93,6 @@ function getUploadUrl(imageId: string) {
   return s3.getSignedUrl('putObject', {
     Bucket: bucketName,
     Key: imageId,
-    Expires: urlExpiration
+    Expires: parseInt(urlExpiration)
   })
 }
