@@ -14,9 +14,12 @@ import * as uuid from 'uuid'
 
 const docClient = new AWS.DynamoDB.DocumentClient()
 
+// we need to create an instance of an s3 Client used to generate
+// a presigned URL
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
 })
+
 
 const groupsTable = process.env.GROUPS_TABLE
 const imagesTable = process.env.IMAGES_TABLE
@@ -44,6 +47,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   return {
     statusCode: 201,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
     body: JSON.stringify({
       newItem: newItem,
       uploadUrl: url
