@@ -7,11 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "elasticsearch": "^15.4.1",
+    "http-aws-es": "^6.0.0",
     "middy": "^0.36.0",
     "source-map-support": "^0.5.10"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
+    "@types/elasticsearch": "^5.0.32",
     "@types/node": "^10.12.18",
     "@types/serverless": "^1.72.5",
     "aws-sdk": "^2.868.0",

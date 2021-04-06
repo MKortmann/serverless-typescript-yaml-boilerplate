@@ -51,6 +51,7 @@ provider:
       Resource: arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CONNECTIONS_TABLE}
 
 custom:
+  topicName: imagesTopic-${self:provider.stage}
   webpack:
     webpackConfig: 'webpack.config.js'
     includeModules: true
@@ -129,6 +130,16 @@ functions:
       API_ID:
         Ref: WebsocketsApi
     handler: src/lambda/s3/sendNotifications.handler
+    events:
+      - sns:
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn:aws:sns
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - ${self:custom.topicName}
+          topicName: ${self:custom.topicName}
 
   ConnectHandler:
     handler: src/lambda/websocket/connect.handler
@@ -143,6 +154,8 @@ functions:
           route: $disconnect
 
   SyncWithElasticsearch:
+    environment:
+      ES_ENDPOINT: !GetAtt ImagesSearch.DomainEndpoint
     handler: src/lambda/dynamoDb/elasticSearchSync.handler
     events:
       - stream:
@@ -162,12 +175,17 @@ resources:
 
     AttachmentsBucket:
       Type: AWS::S3::Bucket
+      DependsOn: SNSTopicPolicy
       Properties:
         BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
         NotificationConfiguration:
-          LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Function: !GetAtt SendUploadNotificationsLambdaFunction.Arn
+          TopicConfigurations:
+            - Event: s3:ObjectCreated:Put
+              Topic: !Ref ImagesTopic
+        # NotificationConfiguration:
+        #   LambdaConfigurations:
+        #   - Event: s3:ObjectCreated:*
+        #     Function: !GetAtt SendUploadNotificationsLambdaFunction.Arn
         CorsConfiguration:
           CorsRules:
             -
@@ -260,6 +278,31 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.CONNECTIONS_TABLE}
+
+# allows s3 to send events to this topic
+    SNSTopicPolicy:
+      Type: AWS::SNS::TopicPolicy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: "*"
+              Action: sns:Publish
+              Resource:
+                !Ref ImagesTopic
+              Condition:
+                ArnLike:
+                  AWS:SourceArn: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}
+        Topics:
+          - !Ref ImagesTopic
+
+    ImagesTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: Image bucket topic
+        TopicName: ${self:custom.topicName}
 
 # this is all we need to do to create a Elasticsearch domain
     ImagesSearch:
