@@ -75,6 +75,10 @@ custom:
         schema: ${file(models/create-image-request.json)}
 
 functions:
+
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
+
   GetGroups:
     handler: src/lambda/http/getGroups.handler
     events:
@@ -90,6 +94,8 @@ functions:
           method: post
           path: groups
           cors: true
+          # so we specified here that it should use the auth func. specified before
+          authorizer: Auth
           request:
             schema:
               'application/json': '${file(models/create-group-request.json)}'
@@ -122,6 +128,7 @@ functions:
           method: post
           path: groups/{groupId}/images
           cors: true
+          authorizer: Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new image
@@ -182,6 +189,19 @@ functions:
 
 resources:
   Resources:
+    # we need to provide correct CORS headers if our customer authorizer
+    # denies access to any functions. It set correct CORS headers if our customer authorizer fails.
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator
       Properties:

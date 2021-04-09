@@ -28,7 +28,7 @@ async function processImage(record: S3EventRecord) {
   // get a key of an uploaded image in S3
   const key = record.s3.object.key
   console.log('Processing S3 item with key: ', key)
-  // download the image using the key
+  // download the image using the key and getObject method that get an object from s3
   const response = await s3
     .getObject({
       Bucket: imagesBucketName,
@@ -36,6 +36,7 @@ async function processImage(record: S3EventRecord) {
     })
     .promise()
 
+  // response.body is the image that was uploaded from s3
   const body = response.Body
   // read an image with the Jimp library
   const image = await Jimp.read(body)
@@ -45,7 +46,7 @@ async function processImage(record: S3EventRecord) {
   image.resize(150, Jimp.AUTO)
 
 
-  // convert an image to a buffer that we can write to a different bucket
+  // convert an image to a buffer that we can write/upload to a different bucket
   const convertedBuffer = await image.getBufferAsync(Jimp.AUTO)
 
   console.log(`Writing image back to S3 bucket: ${thumbnailBucketName}`)
