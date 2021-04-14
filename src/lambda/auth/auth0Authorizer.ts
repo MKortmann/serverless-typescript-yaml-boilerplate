@@ -3,8 +3,12 @@ import 'source-map-support/register'
 // import * as middy from 'middy'
 // import { secretsManager } from 'middy/middlewares'
 
-// import { verify } from 'jsonwebtoken'
-// import { JwtToken } from '../../auth/JwtToken'
+// import verify function
+import { verify } from 'jsonwebtoken'
+// import the JWT token interface that we've just defined
+import { JwtToken } from '../../auth/JwtToken'
+
+const auth0Secret = process.env.AUTH_0_SECRET_ID;
 
 // const secretId = process.env.AUTH_0_SECRET_ID
 // const secretField = process.env.AUTH_0_SECRET_FIELD
@@ -13,14 +17,15 @@ export const handler: APIGatewayAuthorizerHandler = async (event: APIGatewayToke
 
   try {
     // we first call the verifyToken function and pass the token that we need to verify.
-    verifyToken(event.authorizationToken)
+    const decodedToken = verifyToken(event.authorizationToken, auth0Secret)
 
     console.log('User was authorized')
 
     // if the verifyToken does not throw any expection we will return the policy for
     // API Gateway
     return {
-      principalId: 'user',
+      // getting the user id from JWTtoken - sub is an ID of user that pass identification with Auth0
+      principalId: decodedToken.sub,
       policyDocument: {
         Version: '2012-10-17',
         Statement: [
@@ -53,7 +58,7 @@ export const handler: APIGatewayAuthorizerHandler = async (event: APIGatewayToke
   }
 }
 
-function verifyToken(authHeader: string) {
+function verifyToken(authHeader: string, secret: string): JwtToken {
   if (!authHeader)
     throw new Error('No authentication header')
 
@@ -63,11 +68,9 @@ function verifyToken(authHeader: string) {
   const split = authHeader.split(' ')
   const token = split[1]
 
-  if(token !== '123') {
-    throw new Error('Invalid token');
-  }
-
   // no acception, so a request has been authorized
+  // verify the function and return the result as JwtToken (cast operation)
+  return verify(token, secret) as JwtToken
 }
 
 // handler.use(

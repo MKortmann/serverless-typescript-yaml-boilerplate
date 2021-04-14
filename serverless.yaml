@@ -22,6 +22,10 @@ provider:
     IMAGES_S3_BUCKET: udagram-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
     THUMBNAILS_S3_BUCKET: serverless-udagram-thumbnail-exclusiv-${self:provider.stage}
+    # we use this auth_secret generated from Auth to verify JWT Tokens
+    AUTH_0_SECRET_ID: XqQqxztDOAsN2mP1hBg03XrI-WMFCgWVGfIlslnPo7aV_vv_YsfTWo8VD8y0NB6C
+    # AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
+    AUTH_0_SECRET_FIELD: auth0Secret
 
   iamRoleStatements:
     - Effect: Allow
