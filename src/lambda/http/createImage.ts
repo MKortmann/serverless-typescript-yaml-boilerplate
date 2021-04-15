@@ -3,8 +3,8 @@ import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import * as uuid from 'uuid'
 
-// import * as middy from 'middy'
-// import { cors } from 'middy/middlewares'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
 // import * as AWSXRay from 'aws-xray-sdk'
 
 // const XAWS = AWSXRay.captureAWS(AWS)
@@ -26,7 +26,7 @@ const imagesTable = process.env.IMAGES_TABLE
 const bucketName = process.env.IMAGES_S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = middy (async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   console.log('Caller event', event)
   const groupId = event.pathParameters.groupId
   const validGroupId = await groupExists(groupId)
@@ -47,15 +47,16 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   return {
     statusCode: 201,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
+    // headers: {
+    //   'Access-Control-Allow-Origin': '*',
+    //   'Access-Control-Allow-Credentials': true
+    // },
     body: JSON.stringify({
       newItem: newItem,
       uploadUrl: url
     })
   }
-}
+})
 
 
 async function groupExists(groupId: string) {
@@ -102,3 +103,10 @@ function getUploadUrl(imageId: string) {
     Expires: parseInt(urlExpiration)
   })
 }
+
+// it returns cors middleware plus headers that allow us to send credentials from our browser.
+handler.use(
+  cors({
+    credentials: true
+  })
+)
