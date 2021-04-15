@@ -23,8 +23,8 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     THUMBNAILS_S3_BUCKET: serverless-udagram-thumbnail-exclusiv-${self:provider.stage}
     # we use this auth_secret generated from Auth to verify JWT Tokens
-    AUTH_0_SECRET_ID: XqQqxztDOAsN2mP1hBg03XrI-WMFCgWVGfIlslnPo7aV_vv_YsfTWo8VD8y0NB6C
-    # AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
+    # AUTH_0_SECRET_ID: XqQqxztDOAsN2mP1hBg03XrI-WMFCgWVGfIlslnPo7aV_vv_YsfTWo8VD8y0NB6C
+    AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
     AUTH_0_SECRET_FIELD: auth0Secret
 
   iamRoleStatements:
@@ -58,6 +58,16 @@ provider:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CONNECTIONS_TABLE}
+# allow to read a secret value from our new Auth0 Secret resource
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: !Ref Auth0Secret
+# use the KMS Key to decrypt this Secret value
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+      Resource: !GetAtt KMSKey.Arn
 
 custom:
   topicName: imagesTopic-${self:provider.stage}
@@ -377,6 +387,45 @@ resources:
               Principal:
                 AWS: '*'
               Resource: !Sub 'arn:aws:es:${self:provider.region}:${AWS::AccountId}:domain/images-search-${self:provider.stage}/*'
+
+# KMSKey service that we will use to encrypt our Auth0 secret
+    KMSKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: KMS key to encrypt Auth0 secret
+        KeyPolicy:
+          Version: '2012-10-17'
+          Id: key-default-1
+          # gives to our root user full access to this KMS key
+          Statement:
+            - Sid: Allow administration of the key
+              Effect: Allow
+              Principal:
+                AWS:
+                  Fn::Join:
+                  - ':'
+                  - - 'arn:aws:iam:'
+                    - Ref: AWS::AccountId
+                    - 'root'
+              Action:
+                - 'kms:*'
+              Resource: '*'
+
+#  Alias it is basically the human readable name of our key
+    KMSKeyAlias:
+      Type: AWS::KMS::Alias
+      Properties:
+        AliasName: alias/auth0Key-${self:provider.stage}
+        TargetKeyId: !Ref KMSKey
+
+# this is wehre we gonna put our Auth0 Secret
+    Auth0Secret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:provider.environment.AUTH_0_SECRET_ID}
+        Description: Auth0 secret
+        # here we use the KMSKey service created above
+        KmsKeyId: !Ref KMSKey
 
 
 
