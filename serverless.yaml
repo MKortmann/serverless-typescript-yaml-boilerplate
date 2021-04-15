@@ -90,6 +90,9 @@ custom:
 
 functions:
 
+  RS256Auth:
+    handler: src/lambda/auth/rs256Auth0Authorizer.handler
+
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -109,7 +112,8 @@ functions:
           path: groups
           cors: true
           # so we specified here that it should use the auth func. specified before
-          authorizer: Auth
+          # authorizer: Auth
+          authorizer: RS256Auth
           request:
             schema:
               'application/json': '${file(models/create-group-request.json)}'
@@ -142,7 +146,8 @@ functions:
           method: post
           path: groups/{groupId}/images
           cors: true
-          authorizer: Auth
+          # authorizer: Auth
+          authorizer: RS256Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new image

@@ -2,7 +2,6 @@ import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } f
 import 'source-map-support';
 import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
-import { getUserId } from '../../auth/utils';
 
 
 const docClient = new AWS.DynamoDB.DocumentClient()
@@ -15,16 +14,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   const parsedBody = JSON.parse(event.body);
 
-  // to get the user id
-  const authorization = event.headers.Authorization
-  const split = authorization.split(' ')
-  const jwtToken = split[1]
-  const userId = getUserId(jwtToken);
-
-  // adding the userId
   const newItem = {
     id: itemId,
-    userId,
     ...parsedBody
   }
 
