@@ -6,6 +6,7 @@ plugins:
   - serverless-webpack
   - serverless-reqvalidator-plugin
   - serverless-aws-documentation
+  - serverless-plugin-canary-deployments
   - serverless-dynamodb-local
   - serverless-offline
 
@@ -70,6 +71,12 @@ provider:
       Action:
         - kms:Decrypt
       Resource: !GetAtt KMSKey.Arn
+# add permissions to use codedeploy, necessary for canary
+    - Effect: Allow
+      Action:
+        - codedeploy:*
+      Resource:
+        - '*'
 
 custom:
   topicName: imagesTopic-${self:provider.stage}
@@ -137,6 +144,10 @@ functions:
             description: Create a new group
             requestModels:
               'application/json': GroupRequest
+# adding deployment settings for canary deployment
+    deploymentSettings:
+      type: Linear10PercentEvery1Minute
+      alias: Live
 
   GetImages:
     handler: src/lambda/http/getImages.handler
