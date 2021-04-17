@@ -41,9 +41,10 @@ export class GroupAccess {
 }
 
 function createDynamoDBClient() {
+  // if you are offline, serverless offline will set this variable IS_OFFLINE to true
   if (process.env.IS_OFFLINE) {
     console.log('Creating a local DynamoDB instance')
-    return new XAWS.DynamoDB.DocumentClient({
+    return new AWS.DynamoDB.DocumentClient({
       region: 'localhost',
       endpoint: 'http://localhost:8000'
     })
@@ -51,3 +52,5 @@ function createDynamoDBClient() {
 
   return new AWS.DynamoDB.DocumentClient()
 }
+
+
