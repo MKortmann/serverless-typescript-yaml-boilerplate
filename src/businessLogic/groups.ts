@@ -27,6 +27,9 @@ export async function createGroup(
     userId: userId,
     name: createGroupRequest.name,
     description: createGroupRequest.description,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    timestamp2: new Date().toISOString(),
+    newField: "to test",
+    newField2: "Canary10Percent30Minutes"
   })
 }

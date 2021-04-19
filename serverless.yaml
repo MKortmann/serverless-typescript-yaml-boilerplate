@@ -146,7 +146,7 @@ functions:
               'application/json': GroupRequest
 # adding deployment settings for canary deployment
     deploymentSettings:
-      type: Linear10PercentEvery1Minute
+      type: Canary10Percent30Minutes
       alias: Live
 
   GetImages:
