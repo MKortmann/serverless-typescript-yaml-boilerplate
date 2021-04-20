@@ -1,22 +1,29 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import 'source-map-support';
+import 'source-map-support/register'
 import { getAllGroups } from '../../businessLogic/groups';
 
+// import express and aws-serverless-express dependencies
+import * as express from 'express'
+import * as awsServerlessExpress from 'aws-serverless-express'
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.log('Processing event: ', event)
+// create and express app
+const app = express()
 
-  // it gets all groups from DynamoDB table
-  const groups = await getAllGroups();
+// this is a single function that will procedss get request
+app.get('/groups', async (_req, res) => {
+  // so, I get all groups and return then as JSON object
+  const groups = await getAllGroups()
 
-  // Return result in the format that the API Gateway expects from us
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify({
-      items: groups
-    })
-  }
-}
+  // to solve CORS conflict in the frontend
+  res.header({
+    'Access-Control-Allow-Origin': '*'
+  });
+
+  res.json({
+    items: groups
+  })
+
+
+})
+
+const server = awsServerlessExpress.createServer(app)
+exports.handler = (event, context) => { awsServerlessExpress.proxy(server, event, context) }
