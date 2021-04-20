@@ -3,10 +3,10 @@
 
 
 import * as AWS  from 'aws-sdk'
-// import * as AWSXRay from 'aws-xray-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
-// const XAWS = AWSXRay.captureAWS(AWS)
+const XAWS = AWSXRay.captureAWS(AWS)
 
 import { Group } from '../models/Group'
 
@@ -44,13 +44,13 @@ function createDynamoDBClient() {
   // if you are offline, serverless offline will set this variable IS_OFFLINE to true
   if (process.env.IS_OFFLINE) {
     console.log('Creating a local DynamoDB instance')
-    return new AWS.DynamoDB.DocumentClient({
+    return new XAWS.DynamoDB.DocumentClient({
       region: 'localhost',
       endpoint: 'http://localhost:8000'
     })
   }
 
-  return new AWS.DynamoDB.DocumentClient()
+  return new XAWS.DynamoDB.DocumentClient()
 }
 
 

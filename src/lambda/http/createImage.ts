@@ -5,18 +5,18 @@ import * as uuid from 'uuid'
 
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
-// import * as AWSXRay from 'aws-xray-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
 
-// const XAWS = AWSXRay.captureAWS(AWS)
+const XAWS = AWSXRay.captureAWS(AWS)
 
 
-// const docClient = new XAWS.DynamoDB.DocumentClient()
+const docClient = new XAWS.DynamoDB.DocumentClient()
 
-const docClient = new AWS.DynamoDB.DocumentClient()
+// const docClient = new AWS.DynamoDB.DocumentClient()
 
 // we need to create an instance of an s3 Client used to generate
 // a presigned URL
-const s3 = new AWS.S3({
+const s3 = new XAWS.S3({
   signatureVersion: 'v4'
 })
 
