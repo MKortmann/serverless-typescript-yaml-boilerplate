@@ -7,6 +7,7 @@ plugins:
   - serverless-reqvalidator-plugin
   - serverless-aws-documentation
   - serverless-plugin-canary-deployments
+  - serverless-iam-roles-per-function
   - serverless-dynamodb-local
   - serverless-offline
 
@@ -164,6 +165,16 @@ functions:
           method: get
           path: groups/{groupId}/images
           cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          # "arn:aws:dynamodb:eu-central-1:*:table/Images-dev"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.IMAGES_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.GROUPS_TABLE}
 
   GetImage:
     handler: src/lambda/http/getImage.handler
